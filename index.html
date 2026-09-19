@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1b17">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Athan Remote</title>
+<style>
+  :root{
+    --bg:#0f1b17; --panel:#16241f; --panel2:#1d3029;
+    --line:#294a3e; --text:#eaf3ef; --muted:#8fb0a4;
+    --gold:#d9b45b; --green:#3ec98a; --red:#e5776b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent}
+  .wrap{max-width:520px;margin:0 auto;padding:16px calc(16px + env(safe-area-inset-right)) 40px calc(16px + env(safe-area-inset-left))}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 16px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:.2px}
+  .brand .moon{font-size:22px}
+  .status{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);
+    background:var(--panel);border:1px solid var(--line);padding:6px 11px;border-radius:999px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--red);transition:.3s}
+  .dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
+  .card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600}
+  .clock{text-align:center;padding:6px 0 2px}
+  .clock .time{font-size:44px;font-weight:700;letter-spacing:1px}
+  .clock .date{color:var(--muted);font-size:14px;margin-top:2px}
+  .next{margin-top:12px;text-align:center;background:var(--panel2);border-radius:12px;padding:10px}
+  .next .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .next .val{font-size:20px;font-weight:700;color:var(--gold);margin-top:2px}
+  .next .cd{font-size:13px;color:var(--muted);margin-top:2px}
+  ul.times{list-style:none;margin:0;padding:0}
+  ul.times li{display:flex;justify-content:space-between;align-items:center;
+    padding:11px 6px;border-bottom:1px solid var(--line)}
+  ul.times li:last-child{border-bottom:none}
+  ul.times li.active{background:rgba(217,180,91,.10);border-radius:10px;padding-left:12px;padding-right:12px}
+  ul.times .nm{font-weight:600}
+  ul.times li.active .nm{color:var(--gold)}
+  ul.times .tm{color:var(--muted);font-variant-numeric:tabular-nums}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  button.trig{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--text);
+    padding:15px 10px;border-radius:13px;font-size:15px;font-weight:600;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:4px;transition:.15s}
+  button.trig:active{transform:scale(.96);background:var(--line)}
+  button.trig .ic{font-size:20px}
+  button.test{grid-column:1/-1;background:linear-gradient(135deg,#d9b45b,#c79a3c);color:#241c07;border:none}
+  .log{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted);
+    background:#0c1511;max-height:130px;overflow:auto;border-radius:10px;padding:10px;line-height:1.6}
+  .log .l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .foot{text-align:center;color:var(--muted);font-size:11px;margin-top:8px}
+  .foot code{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="moon">🌙</span> Athan Remote</div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusTxt">connecting…</span></div>
+  </header>
+
+  <div class="card">
+    <div class="clock">
+      <div class="time" id="clk">--:--</div>
+      <div class="date" id="date">—</div>
+    </div>
+    <div class="next">
+      <div class="lbl">Next prayer</div>
+      <div class="val" id="nextName">—</div>
+      <div class="cd" id="nextCd">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Today · <span id="cityLabel">—</span></h2>
+    <ul class="times" id="times"><li><span class="nm">Loading…</span></li></ul>
+  </div>
+
+  <div class="card">
+    <h2>Trigger the machine</h2>
+    <div class="grid" id="btns">
+      <button class="trig" data-cmd="Fajr"><span class="ic">🌅</span>Fajr</button>
+      <button class="trig" data-cmd="Dhuhr"><span class="ic">☀️</span>Dhuhr</button>
+      <button class="trig" data-cmd="Asr"><span class="ic">🌤️</span>Asr</button>
+      <button class="trig" data-cmd="Maghrib"><span class="ic">🌆</span>Maghrib</button>
+      <button class="trig" data-cmd="Isha"><span class="ic">🌃</span>Isha</button>
+      <button class="trig test" data-cmd="Test"><span class="ic">▶️</span>Test animation</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Activity</h2>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="foot">Topic: <code id="topicLabel">—</code></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5/dist/mqtt.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
